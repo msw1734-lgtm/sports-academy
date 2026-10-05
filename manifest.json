@@ -1,0 +1,10 @@
+{
+  "name": "Sports Academy Prototype",
+  "short_name": "Sports Academy",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d181e",
+  "theme_color": "#152731",
+  "description": "Sports Academy emergent-history mobile prototype."
+}

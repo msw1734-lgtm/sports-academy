@@ -1,0 +1,85 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#102027"><link rel="manifest" href="manifest.json"><title>Sports Academy</title>
+<style>
+:root{--bg:#0d181e;--panel:#172a34;--panel2:#203944;--green:#347b5d;--gold:#d4b65f;--text:#f5f6f5;--muted:#a9b7bd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:82px}
+header{position:sticky;top:0;z-index:3;background:rgba(21,39,49,.96);padding:calc(14px + env(safe-area-inset-top)) 16px 12px;border-bottom:1px solid #29434e}
+.brand{font-weight:900;font-size:20px}.status{font-size:12px;color:var(--gold);margin-top:4px}
+main{padding:16px;max-width:700px;margin:auto}.eyebrow{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.08em}
+h1{font-size:26px;margin:5px 0 4px}.sub{color:var(--muted);font-size:14px;margin-bottom:14px}
+.card{background:var(--panel);border-radius:16px;padding:15px;margin:10px 0;box-shadow:0 4px 18px #0003}.card h3{font-size:13px;color:var(--gold);margin:0 0 7px}.card p{margin:0;line-height:1.42}
+button{border:0;border-radius:12px;background:var(--green);color:white;font-weight:800;padding:13px 15px;font-size:15px;margin:5px 5px 5px 0}
+button.alt{background:#397ba6}button.ghost{background:#29434e}.big{width:100%;padding:15px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#14262f;border-top:1px solid #29434e;padding:7px 5px calc(7px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;z-index:5}
+nav button{background:transparent;padding:7px 5px;margin:0;font-size:11px;color:var(--muted);width:20%}nav button.active{color:var(--gold)}
+.row{display:flex;gap:8px;overflow:auto}.pill{display:inline-block;background:#29434e;border-radius:999px;padding:5px 9px;font-size:11px;margin:3px 3px 0 0}
+.person{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #29434e;padding:11px 0}.person:last-child{border:0}
+.metric{color:var(--muted);font-size:12px}.featured{color:var(--gold);font-weight:800}.score{font-size:12px;color:var(--muted)}
+</style></head><body><header><div class="brand">SPORTS ACADEMY</div><div id="status" class="status"></div></header><main id="app"></main>
+<nav id="nav"><button onclick="show('hub')">HOME</button><button onclick="show('roster')">ROSTER</button><button onclick="show('coach')">COACH</button><button onclick="show('recruit')">RECRUIT</button><button onclick="show('history')">HISTORY</button></nav>
+<script>
+const phases=["MONDAY REVIEW","MANAGEMENT","RECRUITING & DEVELOPMENT","GAME DAY","CONSEQUENCES","ACADEMY TIMES"];
+function fresh(){return {week:1,phase:0,w:0,l:0,attention:1,pending:null,headline:"A NEW SEASON BEGINS",story:"Nobody knows yet which moments will become history.",
+coachTrust:60,athletes:[["Isaiah Cole","F","FR",68,92,true,50,50,12],["Caleb Wynn","G","SR",64,69,false,50,50,10],["Darius Kent","G","JR",71,76,false,50,50,10],["Marcus Hale","C","SO",67,80,false,50,50,10],["Trey Boone","G","SO",62,74,false,50,50,10],["Jalen Moss","F","FR",60,82,false,50,50,10]],
+recruits:[["Malik Carter","PG",82,94,"Run a smart offense and earn the keys.","Wants proof opportunity is earned.",58,false],["Andre Lewis","F",75,86,"Reach The Summit for his family.","Academic support.",49,false],["Jonah Price","C",70,89,"Develop into a dominant interior player.","Playing time.",44,false]],history:[],news:[],seed:Math.floor(Math.random()*999999),finished:false}}
+let S=JSON.parse(localStorage.getItem("sa05")||"null")||fresh(), view="hub";
+function save(){localStorage.setItem("sa05",JSON.stringify(S))}
+function rnd(){S.seed=(S.seed*1664525+1013904223)%4294967296;return S.seed/4294967296}
+function mem(title,desc,tags,score,person){if(score<55)return;let m={week:S.week,title,desc,tags,score};S.history.push(m);if(person&&score>=75){let a=S.athletes.find(x=>x[0]==person);if(a&&!a[5])a[5]=true}}
+function status(){document.querySelector("#status").textContent=`WEEK ${S.week}/8 • ${S.finished?"SEASON COMPLETE":phases[S.phase]} • ${S.w}-${S.l} • ATTENTION ${S.attention}`}
+function card(t,b,extra=""){return `<div class=card><h3>${t}</h3><p>${b}</p>${extra}</div>`}
+function show(v){view=v;render()}
+function advance(){
+ if(S.finished)return;
+ if(S.phase==3){game();S.phase=4}
+ else if(S.phase==4&&S.pending)return;
+ else if(S.phase==4){S.phase=5;news()}
+ else if(S.phase==5){if(S.week>=8){S.finished=true}else{S.week++;S.phase=0;S.attention=1}}
+ else S.phase++;
+ save();render()
+}
+function game(){
+ let opps=[["Stonebridge",70],["Crownspire",79],["Pinehaven",66],["Stonebridge",72],["Red Valley",69],["Northgate",74],["Crownspire",80],["Summit Prep",76]],o=opps[S.week-1],avg=S.athletes.reduce((a,x)=>a+x[3],0)/S.athletes.length;
+ let ours=Math.round(69+(avg-o[1])*.58+(rnd()-.5)*18),them=Math.round(69+(o[1]-avg)*.55+(rnd()-.5)*18),win=ours>them;win?S.w++:S.l++;
+ let margin=Math.abs(ours-them);
+ if(margin<=4){let a=S.athletes[Math.floor(rnd()*S.athletes.length)],tags=["PRESSURE"];if(o[0]=="Stonebridge")tags.push("RIVALRY");if(!a[5])tags.push("BREAKOUT");mem(a[0].toUpperCase()+" IN THE CLUTCH",`${a[0]} delivered the defining late-game moment against ${o[0]}.`,tags,82,a[0])}
+ if(o[0]=="Stonebridge")mem("THE STONEBRIDGE SERIES GROWS",`Another chapter: Rolling Boulders ${ours}, Stonebridge ${them}.`,["RIVALRY"],59);
+ let isa=S.athletes[0]; if(!win&&margin>=12){isa[8]+=22;S.pending=o[0];mem("ISAIAH STRUGGLES WITH DEFEAT",`Isaiah showed visible frustration after the loss to ${o[0]}.`,["ADVERSITY","PRESSURE"],64,"Isaiah Cole")}
+ let taught=S.history.some(h=>h.tags.includes("TEACHING"));if(taught&&margin<=6&&rnd()<.75){isa[6]+=5;mem("ISAIAH USES THE LESSON",`Isaiah stayed composed under late pressure against ${o[0]}; an earlier lesson changed the present.`,["REDEMPTION","PRESSURE"],86,"Isaiah Cole")}
+ S.story=`Rolling Boulders ${win?"defeats":"loses to"} ${o[0]}, ${ours}-${them}.`;
+}
+function decide(c){let isa=S.athletes[0],opp=S.pending;if(c=="Teach"){isa[7]+=8;isa[6]+=3;isa[8]=Math.max(0,isa[8]-15);mem("A LESSON AFTER DEFEAT",`Leadership treated Isaiah's frustration after ${opp} as a teaching moment.`,["TEACHING","ADVERSITY","TRUST"],76,"Isaiah Cole")}
+else if(c=="Punish"){isa[7]-=5;mem("THE STANDARD IS ENFORCED",`Isaiah faced a formal consequence after ${opp}.`,["ACCOUNTABILITY","ADVERSITY"],63,"Isaiah Cole")}
+else{S.coachTrust+=7;mem("THE DIRECTOR TRUSTS NAVARRO",`The Director trusted Navarro to handle Isaiah after ${opp}.`,["DELEGATION","TRUST"],66,"Isaiah Cole")}S.pending=null;save();render()}
+function news(){let week=S.history.filter(h=>h.week==S.week);if(week.length){let h=week.sort((a,b)=>b.score-a.score)[0];S.headline=h.title;S.story=h.desc}else{S.headline="A QUIET WEEK ON THE MOUNTAIN";S.story="No event crossed the academy's historical significance threshold."}S.news.push([S.week,S.headline,S.story])}
+function useAttention(kind,i){if(![1,2].includes(S.phase)||S.attention<1)return alert("Director Attention is unavailable right now.");S.attention--;
+ if(kind=="coach"){S.coachTrust+=5;mem("DIRECTOR BACKS NAVARRO","The Director invested personal time aligning with Coach Navarro.",["TRUST","DELEGATION"],58)}
+ if(kind=="recruit"){let r=S.recruits[i];r[6]=Math.min(100,r[6]+11);if(r[6]>=78&&!r[7]){r[7]=true;mem("A RECRUIT CHOOSES THE BOULDERS",`${r[0]} committed after receiving personal attention from the Director.`,["RECRUITING","PROMISE"],70)}}
+ if(kind=="develop"){let a=S.athletes.slice().sort((x,y)=>(y[4]-y[3])-(x[4]-x[3]))[0];a[6]+=5}
+ save();render()
+}
+function hub(){
+ if(S.finished)return `<div class=eyebrow>SEASON COMPLETE</div><h1>The history remains.</h1><div class=sub>The scoreboard is finished. What did this season mean?</div>${card("FINAL RECORD",`${S.w}-${S.l} • ${S.history.length} memories preserved.`)}<button class="big" onclick="show('history')">OPEN SEASON HISTORY</button><button class="big ghost" onclick="resetGame()">START NEW HISTORY</button>`;
+ let d=["Review what changed and what the academy remembers.","Choose where your limited personal attention matters.","Recruiting and development continue whether you intervene or not.","Navarro coaches. You watch the consequences emerge.","People react to what happened.","The Academy Times chooses the most meaningful canonical event."][S.phase];
+ let out=`<div class=eyebrow>WEEK ${S.week}</div><h1>${phases[S.phase]}</h1><div class=sub>${d}</div>${card("ACADEMY TIMES",`<b>${S.headline}</b><br><br>${S.story}`)}`;
+ if([1,2].includes(S.phase))out+=card("DIRECTOR ATTENTION",`${S.attention} personal action remaining. You do not have to spend it.`,`<button class=alt onclick="useAttention('develop')">Focus Development</button>`);
+ if(S.phase==4&&S.pending)out+=card("DIRECTOR DECISION","Isaiah's frustration has become a culture moment. Navarro favors teaching.",`<button onclick="decide('Teach')">Teach</button><button onclick="decide('Punish')">Punish</button><button onclick="decide('Trust')">Trust Navarro</button>`);
+ else out+=`<button class=big onclick=advance()>${S.phase==3?"SIMULATE GAME":S.phase==5?"ADVANCE TO NEXT WEEK":"CONTINUE"}</button>`;
+ return out
+}
+function roster(){return `<div class=eyebrow>PROGRAM</div><h1>Basketball Roster</h1><div class=sub>Importance is earned by what happens.</div>`+card("ATHLETES",S.athletes.map(a=>`<div class=person><div><b>${a[0]}</b><div class=metric>${a[1]} • ${a[2]} • Ability ${a[3]} • Confidence ${a[6]}</div></div><div class=${a[5]?"featured":"metric"}>${a[5]?"FEATURED":"PROGRAM"}</div></div>`).join(""))}
+function coach(){return `<div class=eyebrow>STAFF</div><h1>Coach Office</h1><div class=sub>Navarro is a colleague, not a puppet.</div>${card("ELI NAVARRO",`People-first developer.<br>Director/Coach Trust: ${S.coachTrust}<br><br>“Let roles be earned. Back me when that becomes uncomfortable.”`,`<button onclick="useAttention('coach')">Meet With Navarro</button>`)}`}
+function recruit(){return `<div class=eyebrow>FUTURE CLASS</div><h1>Recruiting Board</h1><div class=sub>Recruit dreams, not just ratings.</div>`+S.recruits.map((r,i)=>card(`${r[0]} • ${r[1]} • ${r[6]}%${r[7]?" • COMMITTED":""}`,`Ability ${r[2]} • Potential ${r[3]}<br><br><b>Dream:</b> ${r[4]}<br><b>Concern:</b> ${r[5]}`,r[7]?"":`<button onclick="useAttention('recruit',${i})">Personal Attention</button>`)).join("")}
+function history(){
+ let out=`<div class=eyebrow>THE INSTITUTION REMEMBERS</div><h1>${S.finished?"Season History Review":"History Ledger"}</h1><div class=sub>${S.finished?`Final record ${S.w}-${S.l}. The important question is what survived the season.`:"Not every event becomes history."}</div>`;
+ if(!S.history.length)return out+card("NO MEMORIES YET","Keep climbing.");
+ let sorted=[...S.history].sort((a,b)=>S.finished?b.score-a.score:b.week-a.week);
+ if(S.finished){let breakouts=sorted.filter(h=>h.tags.includes("BREAKOUT"));out+=card("TURNING POINTS",sorted.slice(0,4).map(h=>`• ${h.title}`).join("<br>"));if(breakouts.length)out+=card("BREAKOUTS",breakouts.map(h=>`• ${h.title}`).join("<br>"))}
+ return out+sorted.map(h=>card(`WEEK ${h.week} • ${h.title} • ${h.score}`,`${h.desc}<br><span class=score>${h.tags.join(" • ")}</span>`)).join("")
+}
+function resetGame(){if(confirm("Start a completely new eight-week history?")){S=fresh();save();view="hub";render()}}
+function render(){status();document.querySelector("#app").innerHTML=({hub,roster,coach,recruit,history}[view])();document.querySelectorAll("nav button").forEach((b,i)=>b.classList.toggle("active",["hub","roster","coach","recruit","history"][i]==view))}
+render();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script></body></html>
